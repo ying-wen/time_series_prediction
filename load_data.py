@@ -5,6 +5,8 @@ import os
 TEMPERATURE_FILE_PATH = './data/temperature_history.csv'
 LOAD_FILE_PATH = './data/Load_history.csv'
 
+
+
 def normalization(data, if_mean=True, if_std=True, if_log = False):
     if if_log:
         data = np.log(data + 1)
@@ -32,13 +34,6 @@ def de_normalization(mean,std,data,if_mean=True, if_std=True, if_log = False):
         rst = np.power(scale_array, rst) - 1
     return rst
 
-
-def log(data):
-    df = pd.DataFrame(data=data)
-    mean = df.mean(axis=0)
-    std = df.std(axis=0)
-    return np.array(mean),np.array(std), \
-           np.array(df.sub(mean,axis=1).div(std,axis=1))
 
 def _read_load_from_raw(if_full=False):
     print 'Making load data from raw...'
@@ -154,16 +149,21 @@ def _read_temp_from_raw():
     return length, Time, Temp
 
 
-def read_temperature_history():
-    if os.path.exists('./data/temp.csv') and \
-       os.path.exists('./data/time_temp.csv'):
-        Time = np.array(pd.read_csv('./data/time_temp.csv', header=None))
-        Temp = np.array(pd.read_csv('./data/temp.csv', header=None))
+def read_temperature_history(if_full=False):
+    temp_file = './data/temp.csv'
+    time_temp_file = './data/time_temp.csv'
+    if if_full:
+        temp_file = './data/full_temp.csv'
+        time_temp_file = './data/full_temp_time.csv'
+    if os.path.exists(temp_file) and \
+       os.path.exists(time_temp_file):
+        Time = np.array(pd.read_csv(time_temp_file, header=None))
+        Temp = np.array(pd.read_csv(temp_file, header=None))
         if len(Time) != len(Temp):
             raise ValueError("TypeError")
         length = len(Time)
-        Time = Time.reshape(length, 1, 4)
-        Temp = Temp.reshape(length, 1, 11)
+        Time = Time.reshape((length, 1, 4))
+        Temp = Temp.reshape((length, 1, 11))
         return length, Time, Temp
     else:
         return _read_temp_from_raw()
@@ -174,7 +174,7 @@ def read_load_history(if_full=False):
     time_load_file = './data/time_load.csv'
     if if_full:
         load_file = './data/full_load.csv'
-        time_load_file = './data/time_full_load.csv'
+        time_load_file = './data/full_temp_time.csv'
     if os.path.exists(load_file) and \
        os.path.exists(time_load_file):
         Load = np.array(pd.read_csv(load_file, header=None))
@@ -215,19 +215,60 @@ def _read_benchmark_from_raw():
 
 def read_benchmark():
     if os.path.exists('./data/expected_result.csv'):
-        Bechmark = np.array(pd.read_csv('./data/expected_result.csv', header=None))
-        return Bechmark.reshape(length, 1, 21)
+        bechmark = np.array(pd.read_csv('./data/expected_result.csv', header=None))
+        return bechmark.reshape(len(bechmark), 1, 21)
     else:
         return _read_benchmark_from_raw()
 
-
+def setup_training_data(use_load_for_training = True, july_data = False):
+    print('Loading Data')
+    length_temperature, time_temperature, temperature = read_temperature_history(if_full=True)
+    length_load, time_load, load = read_load_history(if_full=True)
+    mean_time, std_time, time_temperature = normalization(time_temperature.reshape(len(time_temperature),4))
+    mean, std, temperature = normalization(temperature.reshape(len(temperature),11))
+    mean_load, std_load, load = normalization(load.reshape(len(load), 20),if_log=True)
+    temperature = temperature.reshape((len(temperature), 1, 11))
+    time_temperature = time_temperature.reshape((len(time_temperature), 1, 4))
+    load = load.reshape((len(load), 1, 20))
+    
+    # uses the load of previous week as inputs for forcasting
+    if use_load_for_training:
+        load_for_inputs = np.copy(load)
+        for i in range(len(load_for_inputs)-1,-1,-1):
+            index = i - 24 * 7
+            if index < 0:
+                index = i
+            load_for_inputs[i] = np.copy(load_for_inputs[index])
+        
+        inputs_full = np.concatenate((temperature,time_temperature,load_for_inputs),axis=2)
+        inputs_full = inputs_full.reshape((len(inputs_full), 1, 35))
+    else:
+        inputs_full = np.concatenate((temperature,time_temperature),axis=2)
+        inputs_full = inputs_full.reshape((len(inputs_full), 1, 15))
+    load = load.reshape(len(load),20)
+    inputs_full_temp = np.copy(inputs_full)
+    inputs_full = inputs_full[0:39414]
+    expected_output_full = load[0:39414]
+    inputs = inputs_full[0:39414 - 168]
+    expected_output = load[0:39414 - 168]
+    if july_data:
+        inputs_full = inputs_full_temp
+        expected_output_full = load
+        inputs = inputs_full[0:39414 - 168]
+        expected_output = load[0:39414 - 168]
+        
+    print('Full inputs shape',inputs_full.shape)
+    print('Full output shape',expected_output_full.shape)
+    print('Input shape:', inputs.shape)
+    print('Output shape',expected_output.shape)
+    return mean_load, std_load, inputs_full, inputs, expected_output, expected_output_full
 
 def main():
-    # length, Time, Temp = read_temperature_history()
-    # # mean, std ,Temp= normalization(Temp.reshape(len(Temp),11))
-    # print length, len(Time), len(Temp), len(Time[0][0]), len(Temp[0][0])
-    length, Time, Load = read_load_history(if_full=True)
-    print length, len(Time), len(Load), len(Time[0]), len(Load[0])
+    length, Time, Temp = read_temperature_history()
+    mean, std ,Temp= normalization(Temp.reshape(len(Temp),11))
+    print length, len(Time), len(Temp), len(Time[0][0]), len(Temp[0][0])
+    # length, Time, Load = read_load_history(if_full=True)
+    # print length, len(Time), len(Load), len(Time[0]), len(Load[0])
     # print len(read_benchmark())
 
 if __name__ == "__main__":
