@@ -5,7 +5,7 @@ Group 30 (Yijing YANG, Xinyi HE, Ying WEN)
 
 
 ## Models
-* Stateful Recurrent Neural Network
+* Stateful Recurrent Neural Network [Link](./load_prediction_model_stateful_lstm.ipynb) (The detail and result can be found in the ipython notebook)
 
 To more intuitively and vividly illustrate the stateful LSTM model, the following figure shows the structure and processes of the stateful LSTM model: 
 ![figure](./stateful_lstm.jpg)
