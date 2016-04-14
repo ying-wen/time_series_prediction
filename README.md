@@ -7,7 +7,7 @@ Group 30 (Yijing YANG, Xinyi HE, Ying WEN)
 ## Models
 * Stateful Recurrent Neural Network
 
-To more intuitively and vividly illustrate the stateful LSTM model, the following figure shows the structure and processed of the stateful LSTM model: 
+To more intuitively and vividly illustrate the stateful LSTM model, the following figure shows the structure and processes of the stateful LSTM model: 
 ![figure](./stateful_lstm.jpg)
 
 * XGBoost
