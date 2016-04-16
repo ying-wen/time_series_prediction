@@ -1,7 +1,7 @@
 #  Time Series Analysis: Load Forecasting Track of Global Energy
 Time series prediction project for IRDM(COMPGI15) 2016 @ UCL
 
-Group 30 (Yijing YANG, Xinyi HE, [Ying WEN](mailto:ying.wen@cs.ucl.ac.uk))
+Group 30 ([Yijing YANG](mailto:yijing.yang.15@ucl.ac.uk), [Xinyi HE](xinyi.he.15@ucl.ac.uk), [Ying WEN](mailto:ying.wen@cs.ucl.ac.uk))
 
 
 ## Models
@@ -10,7 +10,7 @@ Group 30 (Yijing YANG, Xinyi HE, [Ying WEN](mailto:ying.wen@cs.ucl.ac.uk))
 To more intuitively and vividly illustrate the stateful LSTM model, the following figure shows the structure and processes of the stateful LSTM model: 
 ![figure](./stateful_lstm.jpg)
 
-* XGBoost
+* XGBoost: [Link](./load_prediction_model_xgboost.ipynb)
 
 ## Results
 The following figure is fitting and forecasting resluts of stateful LSTM model (3 layers LSTM with history load as input).  
